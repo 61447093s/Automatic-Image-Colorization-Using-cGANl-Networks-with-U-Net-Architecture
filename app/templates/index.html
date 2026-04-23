@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Colorizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            color: #222;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Preview */
+        #preview-box {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        #preview-box img {
+            max-height: 180px;
+            border: 1px solid #ccc;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        #preview-box p {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Mode selector */
+        .mode-group {
+            margin-bottom: 16px;
+        }
+
+        .mode-group label {
+            margin-bottom: 8px;
+        }
+
+        .mode-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .mode-options input[type="radio"] {
+            margin-right: 4px;
+        }
+
+        .mode-options span {
+            font-size: 0.9rem;
+            color: #444;
+            margin-right: 12px;
+        }
+
+        /* Convert button */
+        button[type="button"] {
+            background-color: #4a90d9;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+
+        button[type="button"]:hover {
+            background-color: #357abd;
+        }
+
+        button[type="button"]:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Status */
+        #status {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        /* Error */
+        #error-box {
+            display: none;
+            color: #c0392b;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            padding: 8px;
+            border: 1px solid #e74c3c;
+            background: #fdf0ef;
+            border-radius: 3px;
+        }
+
+        /* Results */
+        #results {
+            display: none;
+        }
+
+        #mode-label {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .image-box p {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .image-box img {
+            width: 100%;
+            border: 1px solid #ccc;
+            display: block;
+        }
+
+        /* Download */
+        a.download-link {
+            display: inline-block;
+            font-size: 0.9rem;
+            color: #4a90d9;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        a.download-link:hover {
+            color: #357abd;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: #aaa;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1>Image Colorization Using Conditional Generative Adversarial Networks with U-Net Architecture</h1>
+        <p class="subtitle">Elijio Ku &nbsp;·&nbsp; 61447093s &nbsp;·&nbsp; Neural Networks Course</p>
+
+        <hr>
+
+        <!-- File Upload -->
+        <label for="file-input">Select an image:</label>
+        <input type="file" id="file-input" accept=".jpg,.jpeg,.png">
+
+        <!-- Preview -->
+        <div id="preview-box">
+            <img id="preview-img" src="" alt="Preview">
+            <p id="preview-name"></p>
+        </div>
+
+        <!-- Mode -->
+        <div class="mode-group">
+            <label>Processing mode:</label>
+            <div class="mode-options">
+                <label>
+                    <input type="radio" name="mode" value="auto" checked>
+                    <span>Auto detect</span>
+                </label>
+                <label>
+                    <input type="radio" name="mode" value="grayscale">
+                    <span>Colorize</span>
+                </label>
+                <label>
+                    <input type="radio" name="mode" value="color">
+                    <span>Convert to grayscale</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div id="error-box"></div>
+
+        <!-- Status -->
+        <p id="status">Processing, please wait...</p>
+
+        <!-- Convert Button -->
+        <button type="button" id="convert-btn" disabled>Convert</button>
+
+        <!-- Results -->
+        <div id="results">
+            <p id="mode-label"></p>
+            <div class="images-grid">
+                <div class="image-box">
+                    <p>Input</p>
+                    <img id="input-img" src="" alt="Input">
+                </div>
+                <div class="image-box">
+                    <p>Output</p>
+                    <img id="output-img" src="" alt="Output">
+                </div>
+            </div>
+            <a class="download-link" href="/download" download>Download result</a>
+        </div>
+
+        <div class="footer">
+            Elijio Ku &nbsp;·&nbsp; 61447093s &nbsp;·&nbsp; Trained on COCO 2017 &nbsp;·&nbsp; 100 Epochs
+        </div>
+
+    </div>
+
+    <script>
+        const fileInput   = document.getElementById("file-input");
+        const convertBtn  = document.getElementById("convert-btn");
+        const previewBox  = document.getElementById("preview-box");
+        const previewImg  = document.getElementById("preview-img");
+        const previewName = document.getElementById("preview-name");
+        const status      = document.getElementById("status");
+        const results     = document.getElementById("results");
+        const errorBox    = document.getElementById("error-box");
+        const modeLabel   = document.getElementById("mode-label");
+        const inputImg    = document.getElementById("input-img");
+        const outputImg   = document.getElementById("output-img");
+
+        let selectedFile = null;
+
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files[0]) {
+                selectedFile = fileInput.files[0];
+                convertBtn.disabled = false;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewName.textContent = selectedFile.name;
+                    previewBox.style.display = "block";
+                };
+                reader.readAsDataURL(selectedFile);
+
+                results.style.display = "none";
+                errorBox.style.display = "none";
+            }
+        });
+
+        convertBtn.addEventListener("click", async () => {
+            if (!selectedFile) return;
+
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+
+            status.style.display  = "block";
+            results.style.display = "none";
+            errorBox.style.display = "none";
+            convertBtn.disabled   = true;
+
+            const formData = new FormData();
+            formData.append("image", selectedFile);
+            formData.append("mode", mode);
+
+            try {
+                const response = await fetch("/process", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    errorBox.textContent    = data.error;
+                    errorBox.style.display  = "block";
+                } else {
+                    inputImg.src            = `data:image/png;base64,${data.input}`;
+                    outputImg.src           = `data:image/png;base64,${data.output}`;
+                    modeLabel.textContent   = `Mode: ${data.mode}`;
+                    results.style.display   = "block";
+                }
+
+            } catch (err) {
+                errorBox.textContent   = "Something went wrong. Please try again.";
+                errorBox.style.display = "block";
+            } finally {
+                status.style.display  = "none";
+                convertBtn.disabled   = false;
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Colorizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eaeaea;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+            letter-spacing: 1px;
+            text-align: center;
+            max-width: 900px;
+            line-height: 1.4;
+}
+
+.subtitle {
+    color: #888;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+        .card {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 36px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #3a3a6e;
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 28px;
+            background: #0f3460;
+        }
+
+        .upload-area:hover {
+            border-color: #6c63ff;
+            background: #1a1a4e;
+        }
+
+        .upload-area.dragover {
+            border-color: #6c63ff;
+            background: #1a1a4e;
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .upload-area p {
+            color: #aaa;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: 2px solid #3a3a6e;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            border-color: #6c63ff;
+            color: #fff;
+        }
+
+        .mode-btn.active {
+            background: #6c63ff;
+            border-color: #6c63ff;
+            color: #fff;
+        }
+
+        /* Convert Button */
+        .convert-btn {
+            width: 100%;
+            padding: 14px;
+            background: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 32px;
+            letter-spacing: 0.5px;
+        }
+
+        .convert-btn:hover {
+            background: #574fd6;
+            transform: translateY(-1px);
+        }
+
+        .convert-btn:disabled {
+            background: #3a3a6e;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner.show {
+            display: block;
+        }
+
+        .spinner-ring {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #3a3a6e;
+            border-top: 4px solid #6c63ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .mode-label {
+            text-align: center;
+            font-size: 1rem;
+            color: #6c63ff;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .image-box {
+            text-align: center;
+        }
+
+        .image-box p {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .image-box img {
+            width: 100%;
+            border-radius: 10px;
+            border: 2px solid #3a3a6e;
+        }
+
+        /* Download Button */
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            background: transparent;
+            color: #6c63ff;
+            border: 2px solid #6c63ff;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .download-btn:hover {
+            background: #6c63ff;
+            color: white;
+        }
+
+        /* Error */
+        .error {
+            display: none;
+            background: #3d1a1a;
+            border: 1px solid #c0392b;
+            color: #e74c3c;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        /* Preview */
+        #preview-box {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #preview-box img {
+            max-height: 200px;
+            border-radius: 8px;
+            border: 2px solid #3a3a6e;
+        }
+
+        #preview-box p {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            color: #444;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Image Colorization Using Conditional Generative Adversarial Networks with U-Net Architecture</h1>
+    <p class="subtitle">Elijio Ku · 61447093s</p>
+    <p class="subtitle">Neural Networks Course</p>
+    <div class="card">
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="upload-area">
+            <div class="upload-icon">📁</div>
+            <strong>Click to upload or drag & drop</strong>
+            <p>Supports JPG, PNG, JPEG</p>
+            <input type="file" id="file-input" accept=".jpg,.jpeg,.png">
+        </div>
+
+        <!-- Image Preview -->
+        <div id="preview-box">
+            <img id="preview-img" src="" alt="Preview">
+            <p id="preview-name"></p>
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="auto">⚡ Auto Detect</button>
+            <button class="mode-btn" data-mode="grayscale">🎨 Colorize</button>
+            <button class="mode-btn" data-mode="color">⬜ Grayscale</button>
+        </div>
+
+        <!-- Error -->
+        <div class="error" id="error-box"></div>
+
+        <!-- Convert Button -->
+        <button class="convert-btn" id="convert-btn" disabled>
+            Convert Image
+        </button>
+
+        <!-- Spinner -->
+        <div class="spinner" id="spinner">
+            <div class="spinner-ring"></div>
+            <p style="color:#888">Processing image...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <div class="mode-label" id="mode-label"></div>
+            <div class="images-grid">
+                <div class="image-box">
+                    <p>Input</p>
+                    <img id="input-img" src="" alt="Input">
+                </div>
+                <div class="image-box">
+                    <p>Output</p>
+                    <img id="output-img" src="" alt="Output">
+                </div>
+            </div>
+            <a class="download-btn" href="/download" download>
+                ⬇ Download Result
+            </a>
+        </div>
+
+    </div>
+
+    <p class="footer">Elijio Ku · 61447093s · Pix2Pix GAN · Trained on COCO 2017 · 100 Epochs</p>
+    <script>
+        const uploadArea  = document.getElementById("upload-area");
+        const fileInput   = document.getElementById("file-input");
+        const convertBtn  = document.getElementById("convert-btn");
+        const spinner     = document.getElementById("spinner");
+        const results     = document.getElementById("results");
+        const errorBox    = document.getElementById("error-box");
+        const previewBox  = document.getElementById("preview-box");
+        const previewImg  = document.getElementById("preview-img");
+        const previewName = document.getElementById("preview-name");
+        const modeLabel   = document.getElementById("mode-label");
+        const inputImg    = document.getElementById("input-img");
+        const outputImg   = document.getElementById("output-img");
+        const modeBtns    = document.querySelectorAll(".mode-btn");
+
+        let selectedFile = null;
+        let selectedMode = "auto";
+
+        // Mode buttons
+        modeBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                modeBtns.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                selectedMode = btn.dataset.mode;
+            });
+        });
+
+        // Upload area click
+        uploadArea.addEventListener("click", () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            uploadArea.classList.add("dragover");
+        });
+
+        uploadArea.addEventListener("dragleave", () => {
+            uploadArea.classList.remove("dragover");
+        });
+
+        uploadArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove("dragover");
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        // File input change
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files[0]) handleFile(fileInput.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            convertBtn.disabled = false;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src    = e.target.result;
+                previewName.textContent = file.name;
+                previewBox.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+
+            // Hide previous results
+            results.classList.remove("show");
+            errorBox.classList.remove("show");
+        }
+
+        // Convert button
+        convertBtn.addEventListener("click", async () => {
+            if (!selectedFile) return;
+
+            // Show spinner, hide results
+            spinner.classList.add("show");
+            results.classList.remove("show");
+            errorBox.classList.remove("show");
+            convertBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append("image", selectedFile);
+            formData.append("mode", selectedMode);
+
+            try {
+                const response = await fetch("/process", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    errorBox.textContent = data.error;
+                    errorBox.classList.add("show");
+                } else {
+                    // Show results
+                    inputImg.src  = `data:image/png;base64,${data.input}`;
+                    outputImg.src = `data:image/png;base64,${data.output}`;
+                    modeLabel.textContent = `Mode: ${data.mode}`;
+                    results.classList.add("show");
+                }
+
+            } catch (err) {
+                errorBox.textContent = "Something went wrong. Please try again.";
+                errorBox.classList.add("show");
+            } finally {
+                spinner.classList.remove("show");
+                convertBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>
